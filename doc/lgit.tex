@@ -1,5 +1,5 @@
 \documentclass{ltxdoc}
-% latexBob.py lgit ~/Documents/unix/git/ q d
+% latexBob.py lgit ~/gits/github/lgit/doc/ q d
 %
 \usepackage{hyperref}
 \usepackage{textcomp}
@@ -20,18 +20,6 @@
 \newpage
 \section{Introduction}
 \subsection{Purpose}
-new bobtilde \bobtilde/gits\\
-TEST \mygits\\
-$\sim$/gits
-$~$/gits\\
-\~{}\\
-
-\edef\xtilde{\string~}
-{\tt \xtilde/gits}
-
-test 2 {\tt \string~/gits}
-
-\url{file://~/gits} \bobtilde\cmd{/gits}
 The \ucmd{lgit} collection of \ucmd{python} programs and the \ucmd{git} system can be used to track multiple project directories in a parallel and consistent manner.  The \ucmd{lgit} system also contains a setup program that helps to identify important \LaTeX\ directories and then initialize the associated \ucmd{git} repositories.  The intent is to (a) be able to restore all \LaTeX-related source files to a previous state so that documents can be recompiled in their original form and (b) allow for easier recovery of bad \LaTeX\ upgrades by making it easier to return the \LaTeX\ tree to a prior state.  Other advantages of \ucmd{lgit} are that locally-developed style files and related files can be tracked in parallel with the \LaTeX tree.
 
 Part of the challenge of using \ucmd{git} for version control for \LaTeX\ is that \ucmd{git} usually puts the full repository in the directory that is being tracked, but package manager systems like MacPorts assume that the user will not alter the \LaTeX\ source directories. If these files are altered, upgrading \LaTeX\ programs or the source tree can be difficult. The \ucmd{lgit} system puts the \ucmd{git} repositories in a remote location and synchronizes repository tags to facilitate parallel operations on the working directories.
@@ -48,8 +36,8 @@ The \lgit\ system is designed for UNIX-type operating systems.  It should run on
 The default configuration should be useful for tracking the \LaTeX\ distribution files.  If you want to track a different set of files, then you would need to review the manual configuration procedures below.
 \begin{enumerate}
 \item{Install prerequisite programs if needed (Python 3.1, git, \LaTeX).  Note     that Python 2.X will not work.}
-\item{Copy the \lgit\ programs to a directory in the execution path.  See     section XXX on page XXX.}
-\item{Create global defaults for \ucmd{git} if you have never initialized git.     See section XXX on page XXX.}
+\item{Copy the \lgit\ programs to a directory in the execution path.  See section XXX on page XXX.}
+\item{Create global defaults for \ucmd{git} if you have never initialized git.  See section XXX on page XXX.}
 \item{Run \ucmd{lgit.py setup}, which will set default options in \lgitconf,     identify \LaTeX\ directories to track, create the \ucmd{git} repositories,     and initialize those repositories}
 \item{Continue with the normal version control process such as adding files     and committing.  See section XXX on page XXX.}
 \end{enumerate}
@@ -212,7 +200,7 @@ Note that the first command would overwrite any existing \ucmd{.gitignore} file 
 If you are using regular \ucmd{git}, you would normally put the list of wildcards to exclude in a \ucmd{.gitignore} file in the working directory. This approach would also cause anyone who pulls from that directory to capture that list of files to ignore.  This is not a good idea for the \ucmd{lgit} system because the idea is to not add any junk to the official \LaTeX\ tree.
 
 
-If you are tracking a project directory that contains a preponderance of files that you do not want to track, it would be possible to ignore all files by adding \ucmd{*}  to the appropriate ignore file and then use the \ucmd{add -f} command to force the file into the repository.  An example command would be \ucmd{lgit.py add -f *.c} to add a \ucmd{.c} file to the repository when the normal ignore file would ignore it.
+If you are tracking a project directory that contains a preponderance of files that you do not want to track, it would be possible to ignore all files by adding \ucmd{*}  to the appropriate ignore file and then use the \ucmd{add -f} command to force the file into the repository.  An example command would be \ucmd{lgit.py "add -f *.c"} to add a \ucmd{.c} file to the repository when the normal ignore file would ignore it.
 
 \subsection{Warnings}\label{warnings}
 \subsubsection{File Ownership}
@@ -362,7 +350,7 @@ Commands issued through \lgit\ correspond to regular \ucmd{git} commands.  The m
 A sequence of \lgit\ commands might be as follows:
 
 \begin{tabular}{lp{4in}{l}}
-\ucmd{lgit.py add .}&
+\ucmd{lgit.py "add ."}&
 This will tell \ucmd{git} to identify files that have been added or changed.  Those files will be added to a list of pending transactions.  Depending on your options, you might have to preface this command with \verb*|sudo | so that it is executed under the root user ID.\cr
 \ucmd{lgit.py add -u .}&The \ucmd{-u} option tells \ucmd{git} to register files that have been deleted.  This command is very useful for tracking \LaTeX\ source distributions because sometimes many files are deleted when you synchronize with CTAN.  The alternative would be to run \ucmd{git rm} commands, which are exceedingly slow.\cr
 \ucmd{lgit.py status}&This command lists all the changes that \ucmd{git} is prepared to make and it also lists changes that it will not make.  If you set your global options according to the instructions in Sections~\ref{gitglobal}, then the \ucmd{status} command should show filenames in green if \ucmd{git} will capture the changes or red if \ucmd{git} will not capture the changes.  If there are any red filenames, they will be at the bottom of each status listing, but note that \lgit\ will cycle through many directories, so you will have to scan the output carefully.\cr
@@ -373,21 +361,21 @@ This will tell \ucmd{git} to identify files that have been added or changed.  Th
 \subsubsection{Add}
 If you add, delete, or modify files in a working directory, those changes are not capture until you tell \ucmd{git} to identify and capture them.  This process can imply one or two essential steps plus some commands to check your work. In many cases, this command will add all the files that you want to add:
 \begin{verbatim}
-lgit.py add .
+lgit.py "add ."
 \end{verbatim}
 In some cases, you will be prompted to run the command under the root ID, in which case you would run:
 \begin{verbatim}
-sudo lgit.py add .
+sudo lgit.py "add ."
 \end{verbatim}
 
 The proper way to delete files from a \ucmd{git} working directory is to run the \ucmd{lgit.py rm} \emph{filename} command, but the command is slow.  If you deleted many files from a working directory, you can tell git to reflect those changes by use the \ucmd{-u} option, which is much faster than the \ucmd{rm} command:
 \begin{verbatim}
-lgit.py add -u .
+lgit.py "add -u ."
 \end{verbatim} 
 
 If for some reason you told \ucmd{git} to ignore some files, you might need to force a file into the repository. Use the \ucmd{-f} option:
 \begin{verbatim}
-lgit.py add -f *.py
+lgit.py "add -f *.py"
 \end{verbatim}
 
 \subsubsection{Tag}
@@ -598,12 +586,12 @@ tag_regexp = V[0-9]{4}[.][0-9]{2}[.][0-9]{2}[a-z]{0,2}]
 unlockgitdir = True
 \end{verbatim}
 
-I ran setup and answered \cmd{y} to everything.  This used the \cmd{texconfig conf} command to identify many of the most important \LaTeX\ directories that should be tracked.
+I ran setup and answered \ucmd{y} to everything.  This used the \cmd{texconfig conf} command to identify many of the most important \LaTeX\ directories that should be tracked.
 \begin{verbatim}
 sudo lgit.py setup
 \end{verbatim}
 
-To test only my test directories, I erased much of the config file until it looked like this (be sure to check the git_rep_root directory):
+To test only my test directories, I erased much of the config file until it looked like this (be sure to check the git\_rep\_root directory):
 bv
 \begin{verbatim}
 [lgit]
@@ -644,7 +632,7 @@ lgit.py status
 
 Add files:
 \begin{verbatim}
-lgit.py add .
+lgit.py "add ."
 \end{verbatim}
 
 

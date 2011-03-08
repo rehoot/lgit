@@ -1,6 +1,6 @@
 # run this from the UNIX command line as:
 #   cd thedirectory_where_setup.py_is
-#   python setup.py sdist
+#   sudo python setup.py sdist
 from distutils.core import setup 
 import shutil
 import os

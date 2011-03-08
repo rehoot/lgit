@@ -1,3 +1,5 @@
+DESCRIPTON:
+
 This is a set of python scripts for python 3+ that will facilitate git
 version control (on a UNIX-based system) of any parallel set of
 projects or any project in which the git repository is store somewhere
@@ -5,6 +7,18 @@ other than the .git directory in the root of the repository.  It
 contains some extra code that will help the user identify and track
 the LaTeX source tree that contains all of the class files, style
 files, and other stuff related with the LaTeX distribution.
+
+WARNING: AVOID USING PUSH OR PULL COMMANDS ON A PARALLEL CLUSTER OF
+DIRECTORIES UNLESS YOU HAVE TESTED EVERYTHING CAREFULLY AND HAVE
+REDUNDANT BACKUPS OF YOUR FILES.
+
+For a non-LaTeX use on a single directory, you could use the lgit
+system to create a git version control repository for some scripts
+that you created in the /usr/bin directory, and the repository itself
+would be stored in the ~/gits/usrbin directory. This means that you
+will not pollute your /usr/bin directory with .git files. For this
+use, you might want to force only selected files into the repository
+by using commands like: lgitw.py "add -f *.sh"
 
 A generic use of this system is to use the lgitw.py command (the 'w'
 stands for working directory) by navigating to a project directory and
@@ -34,7 +48,7 @@ in some mysterious file ruined the compilation of your LaTeX document.
 
 I think I created dist/lgitlib-1.0.tar.gz as a python package that will
 install three .py files to /usr/bin and install the lgit-lib.py file
-as a python module (it has been a long time since I fiddled with the
+as a python library (it has been a long time since I fiddled with the
 install, as of March, 2011). When the user first runs lgit.py, the
 script should detect that ~/.lgitconf is missing and prompt the user
 if the script should create the default config file.  That process
@@ -43,3 +57,87 @@ distribution) as a means of identifying the LaTeX directories to
 track.  If you don't have LaTeX, this part might fail, but it is not a
 problem if you don't have LaTeX.
 
+INSTALLATION (if you have LaTeX installed)
+
+1) Copy and unpack lgitlib-1.0.tar.gz
+2) Change your directory to the place where setup.py is stored:
+cd thedirectory
+3) Run the setup command:
+      sudo python setup.py sdist
+4) Note that the setup command should copy lgit.py., lgitw.py, and
+lgit-commit.py to the /usr/bin directory and install lgitlib.py as a
+python library.
+5) From the command line, run:
+      lgit.py setup
+That command will initialize the ~/.lgitconf file to point to ~/gits
+as the remote repository, and it will attempt to identify the
+directories in your LaTeX tree.
+
+EXAMPLE CONFIG FILE FORMAT (for a LaTeX setup)
+The following is an example of some settings
+
+[lgit] 
+requireroot = True 
+git_rep_root = ~/gits 
+unlockgitdir = True 
+logfile = False 
+promptonpushpull = True
+
+[lgitfiles] 
+texmfmain = /usr/local/texlive/2008/texmf 
+texmfdist = /usr/local/texlive/2008/texmf-dist 
+texmflocal = /usr/local/texlive/texmf-local 
+texmfsysvar = /usr/local/texlive/2008/texmf-var 
+texmfsysconfig = /usr/local/texlive/2008/texmf-config 
+texmfvar = /Users/rehoot/.texmf-var 
+texmfconfig = /Users/rehoot/.texmf-config 
+texmfhome = /Users/rehoot/texmf 
+mktexcnf = /usr/local/texlive/2008/texmf/web2c
+
+
+CONFIG SETUP FOR A NON-LATEX INSTALLATION TO TRACK ONE DIRECTORY.
+
+Let's say that you put some custom scripts in the /usr/bin directory,
+and you want to track them in a git repository, but you don't want to
+store the .git directory in /usr/bin.  You can install lgit and then
+create an entry called [usrbin] (that will be the name of the
+subdirectory in the git_rep_root directory) and then identify which
+directories are sent where by creating a "[usrbin-files]" entry in
+.lgit and specifying the target subdirectory name (the subdirectory
+under ~/.gits where the remote repository will be stored): usrbin =
+/usr/bin.  Note that the unlockgitdir option will change the owner of
+.git repository files to your regular user ID if the lgit commands
+were run using the root ID.  This might be useful to avoid ownership
+problems when you try to do simple git commands but some of the .git
+files are owned by root and cannot be changed.
+
+
+[lgit] 
+requireroot = True 
+git_rep_root = ~/gits 
+unlockgitdir = True 
+logfile = False 
+promptonpushpull = True
+
+[usrbin]
+debuglvl = 0
+debug_prompt = False
+requireroot = True
+git_rep_root = ~/gits
+unlockgitdir = True
+logfile = False
+promptonpushpull = True
+tag_regexp = V[0-9]{4}[-][0-9]{2}[-][0-9]{2}[a-z]{0,2}
+
+[usrbin-files]
+usrbin = /usr/bin
+
+CONFIG FOR A NON-LATEX INSTALLATION IN WHICH YOU WANT TO TRACK ONE SET
+OF PARALLEL PROJECTS.  
+One way to do this would be to copy the example
+.lgitconf file and then change the paths and key names to suit your
+needs. For example the first entry under [lgitfiles] is "texmfmain =
+/usr/local/texlive/2008/texmf" where texmfmain is the name of the
+subdirectory under ~/gits where the repository will be stored and
+/usr/local/texlive/2008/texmf is the full ath of the directory that is
+being version-controlled.
