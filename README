@@ -1,0 +1,29 @@
+This is a set of python scripts for python 3+ that will facilitate git version
+control of any parallel set of projects or any project in which the git
+repository is store somewhere other than the .git directory in the root of 
+the repository.  It contains some extra code that will help the user identify
+and track the LaTeX source tree that contains all of the class files, style
+files, and other stuff related with the LaTeX distribution.
+
+A generic use of this system is to use the lgitw.py command (the 'w' stands
+for working directory) by navigating to a project directory and running 
+the lgitw.py command (after initialization) and it will save or retrieve files
+to a remote git repository in ~/gits/your_project_name.
+
+The intende use of this system is that, after initialization, you run commands like:
+lgit.py "add ."
+where the argument is passed to git and run on the appropriate set of remote
+repositories.  For example, you might have a directory called /opt/local/bin/texmf-dist, and the repository would be stored in ~/gits/texmf-dist.  There might 
+be several other LaTeX directories stored in various locations that will be 
+tracked and tagged with consistent tags so that you can check out a commit
+by specifying one tag name, and the lgit.py system willl check out all of 
+the directories that are related to the LaTeX system.  You might need this to 
+recreate a document that does not work properly now because changes in some
+mysterious file ruined the compilation of your LaTeX document.
+
+I think I created dist/lgitlib-1.0.tar as a python package that will install three .py files to /usr/bin and install the lgit-lib.py file as a python module (it has been a long time since I fiddled with the install, as of March, 2011). When the user first runs lgit.py, the script should detect that ~/.lgitconf is missing and prompt the user if the script should create the default config file.  
+That process will also execute the texconfig program (part of the LaTeX 
+distribution) as a means of identifying the LaTeX directories to track. 
+If you don't have LaTeX, this part might fail, but it is not a problem if
+you don't have LaTeX.
+
