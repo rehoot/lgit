@@ -1,0 +1,760 @@
+\documentclass{ltxdoc}
+% latexBob.py lgit ~/Documents/unix/git/ q d
+%
+\usepackage{hyperref}
+\usepackage{textcomp}
+%
+\def\bobtilde{\lower.5ex\hbox{\tt \string~}}%
+\def\ucmd#1{{\tt {#1}}}
+\def\lcmd#1{{\ttfamily\selectfont \\#1}}%display a latex command
+\def\lab{{\tt <}}%left angle bracket
+\def\rab{{\tt >}}%right angle bracket
+\def\lgitconf{\bobtilde\ucmd{/.lgitconf}}
+\def\lgit{{\tt lgit}}
+\def\mygits{\bobtilde\ucmd{/gits}}
+\def\dash{\kern.04em{}{---}\kern.04em{}}
+
+\title{LGIT - Version Control for \LaTeX\ Directories}
+\begin{document}\maketitle
+\tableofcontents
+\newpage
+\section{Introduction}
+\subsection{Purpose}
+new bobtilde \bobtilde/gits\\
+TEST \mygits\\
+$\sim$/gits
+$~$/gits\\
+\~{}\\
+
+\edef\xtilde{\string~}
+{\tt \xtilde/gits}
+
+test 2 {\tt \string~/gits}
+
+\url{file://~/gits} \bobtilde\cmd{/gits}
+The \ucmd{lgit} collection of \ucmd{python} programs and the \ucmd{git} system can be used to track multiple project directories in a parallel and consistent manner.  The \ucmd{lgit} system also contains a setup program that helps to identify important \LaTeX\ directories and then initialize the associated \ucmd{git} repositories.  The intent is to (a) be able to restore all \LaTeX-related source files to a previous state so that documents can be recompiled in their original form and (b) allow for easier recovery of bad \LaTeX\ upgrades by making it easier to return the \LaTeX\ tree to a prior state.  Other advantages of \ucmd{lgit} are that locally-developed style files and related files can be tracked in parallel with the \LaTeX tree.
+
+Part of the challenge of using \ucmd{git} for version control for \LaTeX\ is that \ucmd{git} usually puts the full repository in the directory that is being tracked, but package manager systems like MacPorts assume that the user will not alter the \LaTeX\ source directories. If these files are altered, upgrading \LaTeX\ programs or the source tree can be difficult. The \ucmd{lgit} system puts the \ucmd{git} repositories in a remote location and synchronizes repository tags to facilitate parallel operations on the working directories.
+
+The \ucmd{lgit} system works by using \ucmd{python} scripts to call \ucmd{git} and to process a list of directories that are stored in \lgitconf.  The system will enforce the application of consistent tags to each commit so that commits can be accessed easily.
+
+\subsection{Important Warning}
+Before running the \ucmd{lgit} system, be warned that \ucmd{git} does not track file ownership or access rights, and your \LaTeX\ tree might be owned by the root user or other superuser ID.  To avoid problems with file access rights (especially if various files are owned by different user IDs), \ucmd{lgit} is currently coded to force the user to use the root user for some commands and then it will change file ownership to the non-root user ID.  For security reasons, you should not use \ucmd{lgit} to track a directory that contains executable files. An alternative might be to change the scripts to always require the root user ID.
+
+\section{Installation}
+\subsection{Overview}
+The \lgit\ system is designed for UNIX-type operating systems.  It should run on various Linux, Ubuntu, and Mac computers. There are two approaches to installation that will be outlined here and that will be elaborated in the following sections: (a) default initialization and configuration and (b)~manual initialization and configuration.
+\subsubsection{Default/Impatient Configuration}
+The default configuration should be useful for tracking the \LaTeX\ distribution files.  If you want to track a different set of files, then you would need to review the manual configuration procedures below.
+\begin{enumerate}
+\item{Install prerequisite programs if needed (Python 3.1, git, \LaTeX).  Note     that Python 2.X will not work.}
+\item{Copy the \lgit\ programs to a directory in the execution path.  See     section XXX on page XXX.}
+\item{Create global defaults for \ucmd{git} if you have never initialized git.     See section XXX on page XXX.}
+\item{Run \ucmd{lgit.py setup}, which will set default options in \lgitconf,     identify \LaTeX\ directories to track, create the \ucmd{git} repositories,     and initialize those repositories}
+\item{Continue with the normal version control process such as adding files     and committing.  See section XXX on page XXX.}
+\end{enumerate}
+
+\subsubsection{Manual Configuration}
+If the default settings do not suite your needs, then the configuration can be set manually.
+\begin{enumerate}
+\item{Install prerequisite programs if needed (Python 3.1, git, \LaTeX).  Note     that Python 2.X will not work. See Section~\ref{pythpre}.}
+\item{Copy the \lgit\ programs to a directory in the execution path. See     Section~\ref{copypgm}}
+\item{Create global defaults for \ucmd{git} if you have never initialized git.     See Section~\ref{gitglobal}.}
+\item{Create the \lgitconf file and create entries for settings as described     in Section~\ref{configfile}.}
+\item{Identify the directories that you want to track and code them in the     \lgitconf \ file.  See Section~\ref{dirtrack}.}
+\item{Create the \ucmd{git} repository directories, which are, by default, in   \mygits.  See section XXX on page XXX.}
+\item{Make a conventional archive copy of your computer. See Section     \ref{archive}.}
+\item{Read the warnings in Section~\ref{warnings}.}
+\item{Fine-tune your computer by blocking indexing on the \ucmd{git}     repository. See Section~\ref{tune} on page XXX.}
+\item{Initialize the \ucmd{git} repositories by running the command \ucmd{sudo       lgit.py init}.}
+\item{Optionally ignore some files from the version control process (not     recommended unless you are an expert). See Section~\ref{ignore}.}
+\item{Choose a nomenclature for \ucmd{git} tags. See Section~\ref{nomenclature}.}
+\item{Continue with the normal version control process such as adding files     and committing.  See Section~\ref{usrguide}.}
+\end{enumerate}
+
+\subsection{Python Prerequisites}
+\label{pythpre}The scripts require Python version 3 or ahigher.  Python is probably on your computer already, but you might have an older version that is incompatible with Python version 3 (versions 2.5 and 2.6 will not work). Python it is available for free from \url{http://www.python.org/download/} or other places.  If you have a Mac, you might want to consider using \url{http://macports.org} to install Python and related programs.  It can install multiple version of Python without being confused and allow you to change the active version by running something like:
+\begin{verbatim}
+sudo python_select python31
+\end{verbatim}
+\subsection{Git Prerequisites}
+You must have \ucmd{git}installed for the \lgit\ system to work.  Git is available for free from \url{http://git-scm.org} and other places.  If you are using Mac OS X, you might want to use \href{http://macports.org}{Mac Ports} to install the program.
+
+Any version of \ucmd{git}that allows the \verb|--no-pager|, \verb|--allow-empty|, \verb|--git-dir|, and \verb|--work-tree| options will suffice.  The remainder of the \ucmd{git} commands will be passed from the command line to \ucmd{git}.
+\subsection{Copy the Programs}
+\label{copypgm}Copy the \ucmd{lgit.py}, \ucmd{lgit-commit.py}, \ucmd{lgitlib.py}, and \ucmd{lgitw.py} programs to a directory that is in your execution path, such as \ucmd{/usr/bin}.  The copy command would look something like this:
+\begin{verb}
+sudo cp lgit.py /usr/bin
+\end{verb}
+
+If you do not know your search path, try running \ucmd{env} and looking for the line that starts with \ucmd{PATH}. The \ucmd{lgitlib.py} file can be installed in an appropriate python library, but if you do not know where that is, just copy it to the same place as the other \lgit\ programs.
+
+If the file attributes are lost somehow, you might need to set them:
+\begin{verb}
+sudo chmod ugo+x lgit.py
+sudo chmod ugo+x lgitw.py
+sudo chmod ugo+x lgitlib.py
+\end{verb}
+\subsection{Global \ucmd{git} Initialization}
+\label{gitglobal}If you have never run \ucmd{git} on your computer, you should create a \ucmd{git} ID so that any changes that you make can be flagged with your name or ID.
+
+From the command line, run these commands but use your real name and email (if you are using a Mac, look in Applications-\rab Utilities and run the program called \emph{Terminal} and then enter the commands in that window):
+\begin{verbatim}
+git config --global user.name "John Doe III"
+git config --global user.email your.email@yahoo.com
+git config --global color.ui true
+
+git config --global color.diff auto
+git config --global color.status auto
+git config --global color.branch auto
+git config --global color.interactive auto
+\end{verbatim}
+
+\subsection{Identify the Directories to Track}
+\label{dirtrack}The \ucmd{lgit} system cannot work unless it knows which directories that you want to track. To make this process easier, \ucmd{lgit.py} will run a setup routine upon its first execution and it will attempt to identify the correct \LaTeX\ directories to track and the initialize the \ucmd{git} repositories.  The \lgit\ system can be used for things other than \LaTeX, but you will need to manually enter the directories to track in the \lgitconf\ file.
+
+It is recommended to check the contents of the \lgitconf\ file to be sure that you are tracking the correct directories.  If you develop your own \LaTeX\ style files, bibtex files, or the like, you should be sure that those are tracked.  You probably should not track your ordinary \LaTeX\ documents using \ucmd{lgit}, but you could track them with regular \ucmd{git}.
+
+The setup routine will identify \LaTeX\ directories by running the command: \ucmd{texconfig conf}.  You might want to run that command yourself after the \lgit\ setup routine runs so that you can confirm that your \LaTeX\ options correctly correspond to your working directories.  If you run the \ucmd{texconfig conf} command yourself, you can look under the ``kpathsea variables'' section of the output and look for entries that begin with codes like TEXMFMAIN, TEXMFDIST, TEXMF\hskip0pt LOCAL, TEXMF\hskip0pt SYSVAR, TEXMFSYS\hskip0pt CONFIG, TEXMFVAR, TEXMF\hskip0pt CONFIG, TEXMF\hskip0pt HOME, and TEXMFHOME. You probably do not need to track VARTEXFONTS because it typically contains the compiled fonts that you already have.  You might also want track additional directories that the setup routine does not automatically identify.
+
+\subsection{The Configuration File}
+\subsubsection{Structure of the File}
+\label{configfile}Options for the \lgit\ system are stored in the \lgitconf\ configuration file.  This file holds settings for general options (discussed in section XXX on page XXXX) and it also holds lists of directory-clusters to track.
+
+The configuration file is divided into sections marked by tags that are enclosed in square brackets.  In the \ucmd{[lgit]} section, the entry for \ucmd{gitdir} points to the root of the \ucmd{lgit} repository.  Under that directory will be the \ucmd{git} repositories for each of the directories that \ucmd{lgit} tracks.  Under the \ucmd{[lgitfiles]} section are key-value pairs that represent the subdirectory name for the repository and the full path to the working directories that are tracked.  For example, the first entry in that section is for \ucmd{texmfmain}, which means that a \ucmd{git} repository will be created in \mygits\ucmd{/texmfmain} and that directory will contain the version history of the working directory: \ucmd{/usr/local/texlive/2008/texmf}.
+
+If you intended to use the \ucmd{push} or \ucmd{pull} commands, you would also need to population the corresponding entries for the destination or origin for each working directory.  If you do not want to push or pull for a given working directory, create an option entry that contains the appropriate key but with not path after it.
+
+Here is an example listing of the \lgitconf\ configuration file:
+\begin{verbatim}
+[lgit]
+requireroot = True
+git_rep_root = ~/gits
+unlockgitdir = True
+logfile = False
+promptonpushpull = True
+
+[lgitfiles]
+texmfmain = /usr/local/texlive/2008/texmf
+texmfdist = /usr/local/texlive/2008/texmf-dist
+texmflocal = /usr/local/texlive/texmf-local
+texmfsysvar = /usr/local/texlive/2008/texmf-var
+texmfsysconfig = /usr/local/texlive/2008/texmf-config
+texmfvar = /Users/rehoot/.texmf-var
+texmfconfig = /Users/rehoot/.texmf-config
+texmfhome = /Users/rehoot/texmf
+mktexcnf = /usr/local/texlive/2008/texmf/web2c
+
+[lgitpull]
+texmfmain = /q/latex/texmf
+texmfdist =  /q/latex/texmf-dist
+texmflocal = 
+texmfsysvar = /q/latex/texmf-var
+texmfsysconfig = /q/latex/texmf-config
+texmfvar = 
+texmfconfig = 
+texmfhome = 
+mktexcnf = /q/latex/texmf/web2c
+
+[lgitpush]
+texmfmain =
+texmfdist =
+texmflocal =
+texmfsysvar =
+texmfsysconfig =
+texmfvar =
+texmfconfig =
+texmfhome =
+mktexcnf =
+\end{verbatim}
+
+\subsubsection{Option Settings}
+The main options are under the \verb|[lgit]| section of the \lgitconf\ file.
+\begin{enumerate}
+  \item{\ucmd{requireroot}: If set to true (the default), the \lgit\ commands that might change the working directory (and a few other commands) must be run from the root user ID.  Harmless commands like \ucmd{lgit.py status} will not require root, although the user can run such command from the root ID if desired.}
+  \item{\ucmd{git\_rep\_root}: This option holds the path to a directory that will hold all of the \ucmd{git} repositories that are tracked by \lgit. The default value is\mygits.}
+  \item{\ucmd{unlockgitdir}: If set to \ucmd{True}, this option will check if the command is run under the root user ID, and if so it will change the ownership of the \ucmd{git} repository to the regular user ID.  This action will be taken only for those commands that are not marked as \emph{safe} such as \ucmd{status}, \ucmd{log}, and the like.  The default is \ucmd{True}.}
+  \item{logfile = NOT READY YET.  This option will create a log file. Default value is \ucmd{False}.}
+  \item{\ucmd{promptonpushpull} = If set to \ucmd{True} and the command is either \ucmd{push} or \ucmd{pull}, the user will be prompted to confirm the push or pull foreign path and the working directory.  The user can then skip that directory if desired.}
+\end{enumerate}
+
+\subsubsection{Manual and Automated Option Settings}
+The setup routine will not automatically track directories where the executable programs are stored.  You can track these directories, but there are some warnings to consider first.  The regular \ucmd{git} system does not track file ownership or access rights, so if you ever checkout an old copy of a file, there is a good chance that the file will not have the correct ownership and access rights\dash and this can be a security risk. Do not track executable files with \ucmd{lgit} unless you modify the process to ensure proper security.
+
+If you write your own style files or other \LaTeX\ utilities (not your normal \LaTeX\ documents), you should put them into the TEXMFLOCAL path as shown from the \ucmd{texconfig conf}\verb+|+\ucmd{less} command.  Note that the best place to put your local files is under subdirectories under the LOCAL directory: LOCAL/tex/latex/local for normal style files and LOCAL/bibtex/bib for any personal \ucmd{.bib} files that you create.  Note that you would track only the top of the LOCAL directory and \ucmd{lgit} will capture all the files under it.
+
+If your review of the \ucmd{texconfig} output reveals duplicate directories, you should enter only one of them in \lgitconf.  Also, do not track anything under the \ucmd{/tmp} directory or other temporary directories.  You can track directories that are under your home directory, like \ucmd{\bobtilde/texmf-config}, but do not track your entire home directory with \ucmd{lgit} unless you are an expert.
+
+\subsection{Make a Conventional Archive}
+\label{archive}Now that you know where your \LaTeX\ directories are, you should ensure that you have an archive copy of these in case you accidentally ruin them during your initial experimentation with \ucmd{git}.  Copy these files to an external hard drive, flash drive, or some other media in case of a catastrophe.  You should really have a full archive of your entire hard drive and know how to restore from the archive.  That functionality would be more important than continuing with \ucmd{lgit}.
+\subsection{Create Git Repository Directories}
+Create a directory that will hold all of the \emph{git} repositories.  This will be the \emph{git repository root.} The default location is \mygits\. Under that directory, create several more directories that will hold the individual repositories: \ucmd{texmf}, \ucmd{texmflocal}, \ucmd{texmfhome}, and others that you selected to track.
+
+\subsection{Decide on a Tag Nomenclature}
+\label{nomenclature}The \ucmd{lgit} system will force you to create a tag and a commit message for every commit.  You can think of a \emph{commit} as a snapshot of your \LaTeX\ tree that is stored in \ucmd{git} format.  The \emph{tag} is a short nickname that can be used to point to old commits (snapshots) of your \LaTeX tree.  You might want to create tags in the form of V20100105 that would represent the version form January 5, 2010.  The recommended format for tags is VYYYYMMDD format so that the tags sort in a reasonable order when listed (the \emph{V} stands for \emph{version} and might help to reduce confusion from other numeric strings).  You use a different format for the tags if you want to, such as V11.9 for version 11.9, but you will probably forget what that means unless the code has some other significance.
+
+\subsection{Block Extraneous Processing}
+\label{tune}If you are using a Mac, you might want to prevent the Spotlight program from indexing your \ucmd{git} repository because it is a waste of processing time and disk space. To do this (on Mac only), access the System Settings program, click on the Spotlight icon, look under the Privacy tab, then click the little plus sign at the bottom of the edit box and point to your \mygits\ directory so that it appears in the list of excluded directories.
+\subsection{Ignoring Certain Files}
+\label{ignore}The best version control approach would be to track every file in the \LaTeX\ tree. So if you are smart, you will skip this section. If for some reason you have limited storage (or mental) capacity, you might decide to not track PDF files or other files that are often not needed to run \LaTeX. Note that there might be some graphics packages that use PDF files, PostScript files, or other such things, but in general these files are not needed.  Another alternative would be to write a separate script to move all of the unwanted files from the \LaTeX\ tree, although this might cause problems if your installation program expects the \LaTeX\ tree to remain untouched.
+
+In general, there are three ways to tell \ucmd{git} which files to ignore, and each approach has different functionality: put a \ucmd{.gitignore} file in your home directory to ignore files globally, put a .gitignore file in the working directory, or put the list of files to exclude in \ucmd{\$GIT\_DIR/info/exclude}.
+
+For \ucmd{lgit}, the best solution would be to add a list of regular expressions (file names or wildcards such as \ucmd{*.pdf}) in \ucmd{\$GIT\_DIR/info/exclude}.  For example, you would populate the \ucmd{exclude} file in \mygits\ucmd{/texmf-dist/info/exclude}, \mygits\ucmd{/hometexmf/info/exclude}, and other such places.  You could edit the \ucmd{exclude} file with a text editor and add a line that says \ucmd{*.pdf} to exclude PDF files.  If you don't know how to do this, you should probably not change the files.  If you ruin the \ucmd{exclude} files, you could try deleting them.
+
+There is a global \ucmd{git} setting that will allow you to ignore all files of a given type from all \ucmd{git} repositories that you access from your user ID. To do this, put the list of files to ignore in \bobtilde\ucmd{/.gitignore}.  On a Mac computer, you might want to run a command like this to ignore files that end with a tilde and to ignore files called \verb|.DS_Store|:
+\begin{verbatim}
+echo "*~" >~/.gitignore
+echo ".DS_Store" >>~/.gitignore
+\end{verbatim}
+Note that the first command would overwrite any existing \ucmd{.gitignore} file and the second command with the two right angle brackets would append to the file.
+
+If you are using regular \ucmd{git}, you would normally put the list of wildcards to exclude in a \ucmd{.gitignore} file in the working directory. This approach would also cause anyone who pulls from that directory to capture that list of files to ignore.  This is not a good idea for the \ucmd{lgit} system because the idea is to not add any junk to the official \LaTeX\ tree.
+
+
+If you are tracking a project directory that contains a preponderance of files that you do not want to track, it would be possible to ignore all files by adding \ucmd{*}  to the appropriate ignore file and then use the \ucmd{add -f} command to force the file into the repository.  An example command would be \ucmd{lgit.py add -f *.c} to add a \ucmd{.c} file to the repository when the normal ignore file would ignore it.
+
+\subsection{Warnings}\label{warnings}
+\subsubsection{File Ownership}
+Note that regular \ucmd{git} does not manage file ownership or file access rights. The current \ucmd{lgit} system has an option that can require the use of the root user ID for commands that might alter the working directory (option: \ucmd{requireroot = True} is the default).  The effect of this command is that files that are extracted from a \ucmd{checkout} will be owned by the root user ID.
+
+In addition to keep the \ucmd{git}repository owned by an ordinary user ID instead of the root ID. This might help to reduce file access problems in the repository itself. If the \ucmd{unlockgitdir} option is set to \ucmd{True}, then the \lgit\ system will evaluate the \ucmd{SUDO\_UID} and \ucmd{SUDO\_GID} environmenta variables to determine the \emph{regular} user ID and then change the ownership of the \ucmd{git}repository to that ID.
+
+Before you try to checkout an old version of the repository, you might want to check the file ownership and access rights of the tracked files and directories.  You can use a command
+\begin{verbatim}
+ls -l
+\end{verbatim}
+and read the user ID and group ID for the files that are listed.  If you want to change the user ID of all files in a directory, you can use the command:
+\begin{verbatim}
+sudo chown -R theUID:theGROUP *
+\end{verbatim}
+where you would substitute the appropriate user ID and group ID.
+
+\subsubsection{Side-Effects of Program Upgrades}
+You might correctly identify all of the \LaTeX\ directories to track, but after you upgrade your \LaTeX\ binaries there might be different directories that you should track.  There will be no notification of this, so you might want to review the \emph{Preparing to Install} directions above and check the \LaTeX directories again.
+
+\subsubsection{Case-Sensitive File Tracking}
+Historically I have had some minor problems caused by changes in the upper versus lower case of some directories in the LaTeX tree.  This might not or might not be a problem with your operating system depending on how it handles differences in names, but \ucmd{git} will create separate object for directories with different case (I think).  One of the directories might have been \ucmd{/tex/latex/cjk}.
+
+\subsubsection{Tracking Binaries}
+Although I recommend that you not use \ucmd{lgit} for tracking binary directories because of the file ownership issues, you might want to track some binaries or scripts using some technique.  For example, one of the packages that I use requires the \ucmd{makeglossaries} perl script.  Files like this could be tracked with your normal archiving process or another version tracking process.
+\subsection{Repository Initialization}
+After you have created your repository directories (by default in \mygits), and after you have created your \lgitconf file, you should run the \ucmd{init} command:
+\begin{verbatim}
+sudo lgit.py init
+\end{verbatim}
+This creates a directory structure in the \mygits\ directories but does not actually save a snapshot of your files.
+\subsection{Converting Old \ucmd{tar} Files to Git Repositories}
+Before you create your first snapshot of your \LaTeX\ tree, you might want to consider adding old archives of your \LaTeX\ tree to the \ucmd{lgit} repository.  To do this, you will need to restore the old copies of your \LaTeX\ tree to a directory\dash either the official directory or a temporary directory that is then entered into the \lgitconf\ file.  There are some routines for bringing CVS or SVN repositories into \ucmd{git} using more automated means, but I have not used them. You can search the regular \ucmd{git} manuals for information on that.  If you create a \ucmd{git} repository of old version of your \LaTeX\ tree, you should be able to either copy or clone it to the \mygits directory.
+
+Assuming that you have archives are of old version of your \LaTeX\ tree (as opposed to new downloads), you should first ensure that you already created the \ucmd{git} repository under \mygits and ran \ucmd{lgit.py init}. Double check the paths in the \lgitconf\ file and if your old archives are in the directories listed in that file, then you can run some commands to capture those files.  The commands would look something like this except you can invent your own tag and commit message:
+\begin{verbatim}
+lgit.py "add ."
+lgit.py "add -u ."
+sudo lgit-commit V20081231 "archive of Dec 31, 2008 LaTeX tree from old backup"
+\end{verbatim} 
+When this is done, you should put the next version of your old \LaTeX\ tree into the working directory and run THREE commands to capture the files:
+\begin{verbatim}
+lgit.py "add ."
+lgit.py "add -u ."
+sudo lgit-commit V20090131 "archive of Jan 31, 2009 LaTeX tree from old backup"
+\end{verbatim} 
+The \ucmd{add -u .} command will delete any files from the repository that are no longer in the working directory.  You need this option so that you can restore the \LaTeX\ tree to the exact state.  Note that you do not need the -u option on the very first run, but I included it because it is a very good habit when running \ucmd{lgit}.
+
+Note that it is OK if you have archives for only one of the \LaTeX directories.  The \ucmd{lgit} commands will create empty commits for the directories that are empty.  The empty commits might be helpful if you ever need to restore the files to an old state and then create a new branch from them.
+
+\subsection{First Commit}
+If you did not load old archives of your \LaTeX\ tree into \ucmd{lgit}, you can add files and run your first commit at this point.  The command might run for a long time as the \ucmd{git} program scans your directories and created the initial repository, which contains compressed versions of the original files:
+\begin{verbatim}
+lgit.py "add ."
+lgit.py "add -u ."
+\end{verbatim}
+The \ucmd{add .} command will add your \LaTeX\ files to a list of files that need to be saved.  The command with the -u is not needed if you are starting with an empty repository, but it is a very good habit for \ucmd{lgit} because it will help to delete unnecessary files from the repository, which is needed to restore the working directory to the precise state that was originally saved.  Your files are not actually saved until you run \ucmd{lgit-commit.py}. To commit the changes, run something like this with your own tag and commit message:
+\begin{verbatim}
+lgit-commit.py V20100105 "my first commit."
+\end{verbatim}
+The tag here is a shortcut for the version of my \LaTeX\ directories on January 5, 2010.
+
+\section{User Guide}
+\label{usrguide}Although \ucmd{git} has many features, you can use it for version control using relatively few commands.  Although the \ucmd{git} fanatics claim that it is simple to use, a more precise assessment is that it is easy to use if you have a \ucmd{git} expert next to you that can help you after you make a terrible mistake.  The regular \ucmd{git} program is designed to allow many people around the globe to work on the same project and keep their changes orderly.  I will discuss how you can use \ucmd{lgit} on a single computer for version control, and you can refer to other resources if you decide that you want to share your repository to other computers.
+
+
+\subsection{Querying Your \LaTeX\ Repository}
+The following commands are the basics for viewing your repository.  You might need this information so that you know where to get an old copy of a file.
+\subsubsection{Status}
+The \emph{status} command shows which files have changed, which of them will be captured in the next commit, and which files are not captured or otherwise have a problem:
+\begin{verbatim}
+lgit.py status
+\end{verbatim}
+This is a safe command and you cannot break anything by using it.
+\subsubsection{Log of Commits (Snapshots)}
+Every time you run the \emph{commit} command, \ucmd{git} scans the entire directory tree and generates a hash code using SHA1.  This is a 40-byte code that is most likely unique in its representation of every file in your working directory.  The output from some commands show only the first six or eight bytes of the code because that is often sufficient to uniquely identify the object.  You can then use either the full 40-byte code, a shorter version of that code, or a tag to point to an old snapshot of your \LaTeX\ directory. The tag is best for \ucmd{lgit}, but if you use the \ucmd{lgitw.py} command, you can use the SHA1 code.
+\begin{verbatim}
+lgit.py log
+\end{verbatim}
+This is a safe command and you cannot break anything by using it.
+
+\subsubsection{Show Tags}
+To see a list of tag names without much additional information, try this:
+\begin{verbatim}
+lgit.py tag
+\end{verbatim}
+This is a safe command and you cannot break anything by using it.
+
+You can also see a list of tags and the associated SHA1 codes:
+\begin{verbatim}
+lgit.py show-ref
+\end{verbatim}
+\subsubsection{Show Branches}
+In development of a \LaTeX\ package, you might want to create a temporary branch, edit your \LaTeX\ files and wait until testing is finished before merging the changes into the master branch.  For more information on the logic of branches, you can read the online \ucmd{git} manuals.  The general idea is to create and checkout a branch, make commits as needed, then checkout the main branch and merge the temporary branch. The same functionality exists with \ucmd{lgit}.  If you are an individual user who is not developing \LaTeX\ packages, you might have only the master branch.  If the listing says that you are not on any branch, then you might have a problem.  See Section~\ref{nobranch} on page \pageref{nobranch} for more information.  The regular listing of branches can be seen with:
+\begin{verbatim}
+lgit.py branch
+\end{verbatim}
+This is a safe command and you cannot break anything by using it.
+
+\subsubsection{List Files in the Repository}
+\begin{verbatim}
+# Go to the working directory where the file is located.
+# Your path might be different:
+cd /usr/local/texlive/2008/texmf-dist
+
+lgitw.py "ls-tree -r  HEAD:tex/latex/base"
+\end{verbatim}
+where HEAD refers to the current version of the repository, or you could enter \ucmd{HEAD\~3} for the third prior snapshot. You might want to look in an old snapshot using a tag or commit SHA1:
+\begin{verbatim}
+lgitw.py "ls-tree -r  V20091231:tex/latex/base"
+\end{verbatim}
+
+\subsubsection{Showing Changed Files Between Commits}
+You might want to see which files changed between the current working directory and a prior commit.  The \ucmd{diff} command can do this. You can see a one-line summary by using the \ucmd{--shortstat} option, or a longer summary with the \ucmd{--stat} option that will also show the net number of lines were added to each file.
+\begin{verbatim}
+sudo lgit.py "diff --stat master~1"
+
+# Between two commits
+sudo lgit.py "diff --stat master~1 master~3"
+\end{verbatim}
+You can remove the \ucmd{--shortstat} or \ucmd{--stat} options, but you might get some gibberish from binary files that changed.
+
+\subsubsection{Blame (Show When Changes Were Made)}
+If a single file is broken because of a bad edit, you might be able to determine when the file change by using the \emph{blame} command.  It is often best to work on a single \LaTeX\ directory for this command, so we will use the \ucmd{lgitw.py} command (the \emph{w} is for \emph{working directory}).
+\begin{verbatim}
+# Go to the working directory where the file is located.
+# Your path might be different:
+cd /usr/local/texlive/2008/texmf-dist
+
+lgitw.py "blame tex/latex/hyperref/hyperref.sty"
+\end{verbatim}
+For text files, this command will show a listing of the file along with a SHA1 code, a user ID and a date when that line of the file was last changed.
+
+\subsubsection{}
+
+\subsection{Day-to-Day Git Operations}
+Commands issued through \lgit\ correspond to regular \ucmd{git} commands.  The most basic set of \ucmd{git} commands would include some of the operations in the previous section, such as \ucmd{status} and \ucmd{log}, plus a set of repository commands discussed in this section.
+
+ A typical course of events might be as follows:
+\begin{enumerate}
+  \item{Add, delete, or modify files in a working directory.  This could mean that you download new \LaTeX\ packages, you synchronize with another \LaTeX\ tree, you edit a style file that you wrote or similar actions if you are using \lgit\ for something other than \LaTeX.}
+  \item{Tell \ucmd{git}about the files that were changed.  This is done with the \ucmd{add} command}
+  \item{Check the status of the working directory using the \ucmd{status} command.}
+  \item{Commit changes, which reads the list of files that were added to the pending list and then puts those files into the \ucmd{git} repository.}
+\end{enumerate}
+
+A sequence of \lgit\ commands might be as follows:
+
+\begin{tabular}{lp{4in}{l}}
+\ucmd{lgit.py add .}&
+This will tell \ucmd{git} to identify files that have been added or changed.  Those files will be added to a list of pending transactions.  Depending on your options, you might have to preface this command with \verb*|sudo | so that it is executed under the root user ID.\cr
+\ucmd{lgit.py add -u .}&The \ucmd{-u} option tells \ucmd{git} to register files that have been deleted.  This command is very useful for tracking \LaTeX\ source distributions because sometimes many files are deleted when you synchronize with CTAN.  The alternative would be to run \ucmd{git rm} commands, which are exceedingly slow.\cr
+\ucmd{lgit.py status}&This command lists all the changes that \ucmd{git} is prepared to make and it also lists changes that it will not make.  If you set your global options according to the instructions in Sections~\ref{gitglobal}, then the \ucmd{status} command should show filenames in green if \ucmd{git} will capture the changes or red if \ucmd{git} will not capture the changes.  If there are any red filenames, they will be at the bottom of each status listing, but note that \lgit\ will cycle through many directories, so you will have to scan the output carefully.\cr
+\multispan{2}{\ucmd{lgit-commit.py V20091231 ``my commit message''}}\cr
+&The commit takes two arguments, a tag name and a commit message.  If the commit is successful, then the list of pending changes will be integrated into the repository and you will have a backup copy of your working directory.\cr
+\end{tabular}
+
+\subsubsection{Add}
+If you add, delete, or modify files in a working directory, those changes are not capture until you tell \ucmd{git} to identify and capture them.  This process can imply one or two essential steps plus some commands to check your work. In many cases, this command will add all the files that you want to add:
+\begin{verbatim}
+lgit.py add .
+\end{verbatim}
+In some cases, you will be prompted to run the command under the root ID, in which case you would run:
+\begin{verbatim}
+sudo lgit.py add .
+\end{verbatim}
+
+The proper way to delete files from a \ucmd{git} working directory is to run the \ucmd{lgit.py rm} \emph{filename} command, but the command is slow.  If you deleted many files from a working directory, you can tell git to reflect those changes by use the \ucmd{-u} option, which is much faster than the \ucmd{rm} command:
+\begin{verbatim}
+lgit.py add -u .
+\end{verbatim} 
+
+If for some reason you told \ucmd{git} to ignore some files, you might need to force a file into the repository. Use the \ucmd{-f} option:
+\begin{verbatim}
+lgit.py add -f *.py
+\end{verbatim}
+
+\subsubsection{Tag}
+Because \lgit\ is designed to process multiple working directories in parallel, it is important to use tags to facilitate actions such as \ucmd{checkout} and \ucmd{branch}.  To see a list of tags that are available, run:
+\begin{verbatim}
+lgit.py tag
+\end{verbatim}
+
+Sometimes it is useful to see the tag information in a graphical context, the the interface on several of the \ucmd{git} front-ends does not support remote repositories very well.  One approach that does seem to work is to change the current directory to the git repository (such as \mygits/texmflocal) and then run:
+\begin{verbatim}
+gitk
+\end{verbatim}
+(do not run \ucmd{lgitw.py} for this command).
+
+\subsubsection{Commit}
+
+\subsubsection{Graphical Interfaces}
+Sometimes it is useful to see the commit histories or other repository features in a graphical context, but the the interface on several of the \ucmd{git} front-ends does not support remote repositories very well.  One approach that does seem to work is to change the current directory to the git repository (such as \mygits\ucmd{/texmflocal}) and then run:
+\begin{verbatim}
+gitk
+\end{verbatim}
+(do not run \ucmd{lgitw.py} for this command).
+
+If you are desperate to use a graphical front-end that does not seem to work with remote repositories, you could try renaming the repository directory (e.g. \mygits\ucmd{/texmflocal}) to \ucmd{.git} and then run the application from the \mygits\ directory.  This is an emergency measure only, and be sure to rename the directory when you are done.
+
+
+\subsection{Updating the \LaTeX\ Tree}
+After your \ucmd{lgit} repository has been fully initialized and you made your first commit, you might download some \LaTeX\ packages or syncronize with another \LaTeX\ tree.  You should then add the new files and commit the changes so that you have a snapshot of the \LaTeX\ files.
+
+\begin{verbatim}
+# Show a list of files that changed:
+lgit.py status
+
+# Add files that changed to the list of files
+# that will be captured in the next commit:
+lgit.py "add ."
+
+# Identify files that need to be removed from the repository
+# and schedule them for removal on the next commit:
+lgit.py "add -u ."
+
+# Double check the changed files to see if you 
+# captured them all.  Files should be green.  If they
+# are red, then they have not been captured.
+lgit.py status
+
+sudo lgit-commit.py V20100131 "downloaded the new hyperref package"
+\end{verbatim}
+
+\subsection{Operations on Only One of the \LaTeX\ Directories}
+Sometimes you will want to examine files or directories that are in only one of the directories that you are tracking with \ucmd{lgit}.  Depending on the command, you might be able to run the regular \ucmd{lgit.py} command and simply ignore output from the unwanted directories, or you can change your directory to the working directory in question and use the \ucmd{lgitw.py} command (the \emph{w} is for working directory).  The \ucmd{lgitw.py} command will detect the current directory, scan the \lgitconf\ file to see if that director is listed (while properly detecting if the current directory is a link) and then perform the \ucmd{git} command only on that directory.  You can issue most of the regular \ucmd{git} commands.
+
+If you change one file in one directory, you should not try to commit that one directory unless you are an expert.  If one file changed and you want to commit the changes to the repository, run the \ucmd{lgit-commit.py} command to apply the new commit and tag to all of the tracked repositories. Some of the directories will have no changes, but that is not a problem. The \ucmd{lgit-commit.py} command includes the \verb|--allow|\ucmd{-empty} option so that tags will be unambiguous as opposed to having multiple tags associated with a single commit in one repository but having the same tags associated with multiple commits in a different repository.
+
+You can use \ucmd{gitk} when you have sets of related repositories, but you have to use it on one repository at a time.  Change your directory to the repository directory (in \mygits\ where the \ucmd{.git} directory was moved) and then run \ucmd{gitk}.
+
+\subsection{SHA1}
+The \ucmd{git} program codes each file and directory with a hash code that helps to ensure that the version in the repository is the same as the version in the working directory.  The code is 40 bytes long, and is shown in many \ucmd{git} screens. If you want to check the code for a single file, you could run something like this:
+\begin{verbatim}
+# Go to the working directory where the file is located.
+# Your path might be different:
+cd /usr/local/texlive/2008/texmf-dist
+
+openssl dgst -sha1 ./tex/latex/hyperref/hyperref.sty 
+\end{verbatim}
+If you do not have the \ucmd{openssl} program and you use a Mac, you might want to get MacPorts and get \ucmd{openssl} from there.
+
+\subsection{Restoring One File or Directory from an Old Snapshot}
+If you realize that one of the files in your \LaTeX\ tree is bad, you have a few options.  You could checkout the old snapshot (checkout an old commit using the tag name such as V201001015) or you could grab the one file or directory from the old snapshot and bring it into your working directory.  To grab an old file from the previous commit, try something like this:
+\begin{verbatim}
+# Go to the working directory where the file is located.
+# Your path might be different:
+cd /usr/local/texlive/2008/texmf-dist
+
+lgitw.py "checkout --  tex/latex/hyperref/hyperref.sty"
+\end{verbatim}
+Note the double quotes around the command that is passed to the \ucmd{lgit} command.  Use the \ucmd{lgitw.py} command (with a \emph{w} for \emph{working   directory}) to operate on just one of the \LaTeX directories.
+
+If the good file is in an old commit, you could try
+\begin{verbatim}
+# Go to the working directory where the file is located.
+# Your path might be different:
+cd /usr/local/texlive/2008/texmf-dist
+
+lgitw.py "checkout  V20091231 -- tex/latex/hyperref/hyperref.sty"
+\end{verbatim}
+Where V20091231 is a tag, or you could use the commit ID that is visible from the \ucmd{lgit.py log} command.
+\subsection{Working with Branches}
+If you are using \lgit\ to track the \LaTeX\ distribution files, you probably do not need to create any branches and you could probably skip this section.  If you are using \lgit\ to track a set of projects that are under development, you might want to create branches to test an idea and, if the test works, merge the test branch into the main branch. You must be careful to double check your work whenever you run branch commands in \lgit\ because if the branch command fails on one of the working directories, then you might be in an inconsistent state.  Use \ucmd{lgit.py branch} to assess the current situation both before and after you perform major branch operations.  If one working directory is unsynchronized with the others, you might have to change your working directory to that directory and then use the \ucmd{lgitw.py} command to operate on that directory only.
+\subsubsection{Creating Branches}
+
+\subsection{Finding Files in the Repository (overview)}
+There are several ways of finding files in the repository depending on the information that you have and the information that you need.
+
+If you know the file name and need to find a specific version from the repository, try \cmd{lgit.py blame -- thepath/filename}.
+
+If you know that a change either introduced or deleted a string to a file, you could try:
+\begin{verbatim}
+git log -Sstring
+\end{verbatim}
+To find the commits that contain that string in a change. You could then show the files that changed in that commit  by referencing the commit SHA1:
+\begin{verbatim}
+XXXXXXXXX
+\end{verbatim}
+
+\subsubsection{}
+\subsubsection{}
+\subsubsection{}
+\subsubsection{}
+
+
+% \flushall% print any floats?
+\subsection{Copying Git Repositories Between Computers}
+Git was originally intended to manage distributed editing of the Linux core. Some users of \ucmd{lgit} will likely use it to manage personal copies of the \LaTeX\ tree.  If this is the case, you might want to copy your \ucmd{git} repository from one computer to another.  The traditional way to do this would be for you to go to the new computer, use a network connection to connect to the computer that already has the repository, and use the \ucmd{git clone} command to grab the repository either from a network-mapped drive or from a \ucmd{git} server.  Some users might not be familiar with these techniques or they might have other needs to physically copy \ucmd{git} repositories between computers.
+
+Note that using the \ucmd{git clone} command is best way to copy a git repository from one computer to another because it automatically records the origin of the clone and thereby makes it easier to pull from that same source. That being said, it is possible to copy the .git directories from one computer to another.  The \ucmd{git} repositories in the \ucmd{lgit} system will be under \mygits\ directory and will have names like \mygits\ucmd{/texmf} and \mygits\ucmd{texmf/texmf-var}.  These can be copied between computers, but then you need to ensure that the \lgitconf\ file contains correct information on the destination computer.  After you copy the \ucmd{git} repositories and fix the \lgitconf, you can run \ucmd{lgit.py "checkout   master"} to load files from the repository into your working directories.
+
+\section{If You Are Stuck With No Branch}
+\label{nobranch}If you did something in the past that caused you to be not on any \ucmd{git}branch, your best bet is to bring the current version into a branch and then examine the situation:
+
+\begin{verbatim}
+# confirm that there are no pending changes
+lgit.py status
+
+# If there are pending changes, execute a git-add and 
+# a git-commit here.
+
+# Check your current tag names so you can pick a unique 
+# name
+lgit.py tag
+
+# First tag your current commit:
+lgit.py "tag Stray001"
+
+# Show the commit history and save it so you know 
+# your situation (use double >> so each output appends
+# to the previous output).
+lgit.py "log --decorate=full" >> ~/StrayBranchLog.txt
+
+# Check your current branch names so you can pick a unique 
+# name
+lgit.py branch
+
+# Now create a new branch called "newbranch" that is
+# based on StrayBranch20091015 and check it out.
+sudo lgit.py "checkout -b newbranch Stray001"
+
+# Confirm that you are on a real branch and that there are
+# no pending changes.  Run 
+#   lgit.py add 
+# and 
+#   lgit-commit.py
+# whenever you find uncommitted changes.
+lgit.py branch
+lgit.py status
+
+# If your new branch is active and everything looks OK,
+# then checkout the master branch
+sudo lgit.py "checkout master"
+
+# If the checkout of master fails, you might need 
+# to add the checkout -f  option to force it, but it is
+# best to examine the situations to see if you need to 
+# add files or execute another commit before switching branches.
+
+# If you want the changes that are in "newbranch" only,
+# then after the master branch is active you could run:
+#   lgit.py "merge newbranch"
+
+# If the merge has many conflicts, verify that you have
+# no pending changes and commit them before trying again.
+# You could  also erase the contents of the working directories, checkout 
+# the files from newbranch, then run 
+#   lgit.py "add -u ."
+# and 
+#   lgit.py "add -A ."
+# and commit (as is done in my test1.sh from Oct 2009).
+\end{verbatim}
+
+\section{Upgrading \LaTeX\ distribution}
+\begin{enumerate}
+\item{Commit existing changes before upgrading programs or source tree.}
+\item{For upgrading programs using Debian or MacPorts, it might be best to     checkout a new branch, checkout the commit associated with the prior     install CHECK THIS.}
+\item{Upgrade the \LaTeX\ programs via the package manager (such as Debian or     MacPorts).}
+\item{Run \ucmd{sudo texhash} and \ucmd{sudo updmap --syncwithtrees} (or use     your methods for updating ls-R files and font maps)}
+\item{Run \ucmd{lgit.py "add -u ."}}
+\item{Run \ucmd{lgit.py "add -A ."}}
+\item{Those commands should have told \ucmd{git} to remove any deleted files     from the index and add any new files, and update any changed files.}
+\item{Run \ucmd{lgit.py "status"} and ensure that all of the changes,     additions, and deletions have been properly recognized.}
+\item{Commit changes: \ucmd{lgit-commit.py V20091014upgrade "upgraded to the       new version of texlive version 2007-6"}}
+\item{Sync to \ucmd{tug} or checkout specific files from a prior commit so     that you have all of the new \LaTeX\ source files that you need.}
+\item{Run \ucmd{sudo texhash} and \ucmd{sudo updmap --syncwithtrees} (or use     your methods for updating ls-R files and font maps)}
+\item{Commit again after you have all the files that you need.}
+\end{enumerate}
+
+
+\section{Test Apr 11, 2010}
+I altered the .lgitconf file to point to a test git directory:
+\begin{verbatim}
+[lgit]
+debug_prompt = False
+debuglvl = 0
+git_rep_root = ~/xgits
+logfile = False
+promptonpushpull = True
+requireroot = True
+tag_regexp = V[0-9]{4}[.][0-9]{2}[.][0-9]{2}[a-z]{0,2}]
+unlockgitdir = True
+\end{verbatim}
+
+I ran setup and answered \cmd{y} to everything.  This used the \cmd{texconfig conf} command to identify many of the most important \LaTeX\ directories that should be tracked.
+\begin{verbatim}
+sudo lgit.py setup
+\end{verbatim}
+
+To test only my test directories, I erased much of the config file until it looked like this (be sure to check the git_rep_root directory):
+bv
+\begin{verbatim}
+[lgit]
+debug_prompt = False
+debuglvl = 0
+git_rep_root = /Users/rehoot/xgits/
+logfile = False
+promptonpushpull = True
+requireroot = True
+tag_regexp = V[0-9]{4}[.][0-9]{2}[.][0-9]{2}[a-z]{0,2}]
+unlockgitdir = True
+
+[lgit-files]
+texmfmain = ~/test
+
+[lgit-pullfrom]
+texmfmain = .
+
+[lgit-pullrefspec]
+texmfmain = master:master
+
+[lgit-pushrefspec]
+texmfmain = HEAD.master
+
+[lgit-pushrepository]
+texmfmain = ~/xgits2/texmfmain
+\end{verbatim}
+
+Initialize the \cmd{git} repositories.
+\begin{verbatim}
+sudo lgit.py init
+\end{verbatim}
+
+Check the status of new files:
+\begin{verbatim}
+lgit.py status
+\end{verbatim}
+
+Add files:
+\begin{verbatim}
+lgit.py add .
+\end{verbatim}
+
+
+Make the first commit:
+\begin{verbatim}
+lgit-commit.py V2009.04.11a "first commit for testing"
+\end{verbatim}
+
+I changed one line in the options file:
+\begin{verbatim}
+git_rep_root = /Users/rehoot/xgits2/
+\end{verbatim}
+
+I ran setup and entered ~/xgits2 as the new repository
+\begin{verbatim}
+lgit.py setup
+\end{verbatim}
+
+I changed one line in .lgitconf to point to a new directory, and I deleted all the other lines that pointed to \LaTeX\ path names, and I changed teh lgit-pushrepository path.
+\begin{verbatim}
+[lgit]
+debug_prompt = False
+debuglvl = 0
+git_rep_root = /Users/rehoot/xgits2/
+logfile = False
+promptonpushpull = True
+requireroot = True
+tag_regexp = V2[0-9]{3}[.][0-9]{2}[.][0-9]{2}[a-zA-Z]{0,2}
+unlockgitdir = True
+
+[lgit-files]
+texmfmain = ~/test2
+
+[lgit-pullfrom]
+texmfmain = .
+
+[lgit-pullrefspec]
+texmfmain = master:master
+
+[lgit-pushrefspec]
+texmfmain = HEAD.master
+
+[lgit-pushrepository]
+texmfmain = .
+\end{verbatim}
+
+
+I manually created the second document directory that will receive the pushed repository:
+\begin{verbatim}
+mkdir ~/test2
+\end{verbatim}
+and put a file in it:
+\begin{verbatim}
+ls ~/ > ~/test2/myfile.txt
+\end{verbatim}
+
+Initialize the repository:
+\begin{verbatim}
+sudo lgit.py init
+\end{verbatim}
+and then add:
+\begin{verbatim}
+lgit.py "add ."
+\end{verbatim}
+and then commit:
+\begin{verbatim}
+sudo lgit-commit.py V2009.04.11Xa "First commit of the dest repository"
+\end{verbatim}
+
+Switch the options to point to the first test repository:
+\begin{verbatim}
+[lgit]
+debug_prompt = False
+debuglvl = 0
+git_rep_root = /Users/rehoot/xgits/
+logfile = False
+promptonpushpull = True
+requireroot = True
+tag_regexp = V2[0-9]{3}[.][0-9]{2}[.][0-9]{2}[a-zA-Z]{0,2}
+unlockgitdir = True
+
+[lgit-files]
+texmfmain = ~/test
+
+[lgit-pullfrom]
+texmfmain = .
+
+[lgit-pullrefspec]
+texmfmain = master:master
+
+[lgit-pushrefspec]
+texmfmain = HEAD.master
+
+[lgit-pushrepository]
+texmfmain = ~/xgits2/texmfmain
+\end{verbatim}
+
+Test:
+\begin{verbatim}
+lgit.py tag
+\end{verbatim}
+
+
+
+TRY RUNNING THE COMMAND MANUALLY WITH A TRADITIONAL GIT DIRECTORY:
+
+git --no-pager --git-dir=/Users/rehoot/xgits/texmfmain --work-tree=/Users/rehoot/test push ~/xgits2/texmfmain/ HEAD:master
+
+\appendix
+
+
+
+\end{document}
